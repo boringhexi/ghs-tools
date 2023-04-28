@@ -10,6 +10,8 @@ from mymodules.ghsteximage import (
 
 
 def main(args=tuple(argv[1:])):
+    if not args:
+        print(f"{argv[0]} [texture file] [texture file] ...")
     for path in args:
         with open(path, "rb") as file:
             print(os.path.basename(path))
