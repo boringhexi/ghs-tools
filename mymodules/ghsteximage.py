@@ -24,6 +24,10 @@ class GHSTexUnknownPixFormat(ValueError):
     pass
 
 
+class GHSTexExtraDataException(Exception):
+    pass
+
+
 def is_eof(file):
     """return True if file is at exactly the end of its data"""
     b = file.read(1)
@@ -76,10 +80,18 @@ class GHSTexImageSingle:
 
     @classmethod
     def from_ghstexfile(cls, file: BinaryIO) -> "GHSTexImageSingle":
+        # Account for that one texture file that ends in 16 extra 0xff's
+        bytes16 = file.read(16)
+        if is_eof(file) and bytes16 == b"\xff" * 16:
+            raise GHSTexExtraDataException
+        file.seek(-16, SEEK_CUR)
+
         pixfmt_raw = unpack("<I", file.read(4))[0]
         pixfmt = _pixfmtval_pixfmt.get(pixfmt_raw)
         if pixfmt is None:
-            raise GHSTexUnknownPixFormat(f"Unknown pixel format value {pixfmt_raw!r}")
+            raise GHSTexUnknownPixFormat(
+                f"Unknown pixel format value {pixfmt_raw:#010x}"
+            )
 
         palette_size = unpack("<I", file.read(4))[0]
         tex_index = unpack("<I", file.read(4))[0]
@@ -161,15 +173,6 @@ class GHSTexImageSingle:
             return self.pixels
 
 
-class GHSTexImageMulti(list):
-    @classmethod
-    def from_ghstexfile(cls, file: BinaryIO) -> "GHSTexImageMulti":
-        ghstexs = []
-        while not is_eof(file):
-            ghstexs.append(GHSTexImageSingle.from_ghstexfile(file))
-        return cls(ghstexs)
-
-
 def quickcheck_tex_file(file) -> bool:
     """quickly check whether file is (very likely) a Gregory Horror Show texture
 
@@ -180,8 +183,15 @@ def quickcheck_tex_file(file) -> bool:
         After return, file's current read position is undefined
     """
     while True:
-        if not read_and_check(file, 4):
-            return False
+        header1_b = file.read(4)
+        if len(header1_b) not in (b"\x08\0\0\0", b"\x09\0\0\0"):
+            # Account for that one texture that ends in 4 extra 0xffffffff's
+            if header1_b == b"\xff\xff\xff\xff":
+                read_and_check(file, 12)
+                if is_eof(file):
+                    return True
+                return False
+
         palette_size_b = file.read(4)
         if len(palette_size_b) < 4:
             return False

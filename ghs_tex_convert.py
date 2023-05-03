@@ -3,8 +3,10 @@ import os
 from sys import argv
 
 from mymodules.ghsteximage import (
+    GHSTexExtraDataException,
+    GHSTexImageSingle,
     GHSTexUnknownPixFormat,
-    GHSTexImageMulti,
+    is_eof,
     quickcheck_tex_file,
 )
 
@@ -20,13 +22,17 @@ def main(args=tuple(argv[1:])):
                 print("!! Not a GHS texture file")
                 continue
             file.seek(0)  # since read position is undefined after quickcheck_tex_file
-            try:
-                ghstexmulti = GHSTexImageMulti.from_ghstexfile(file)
-            except GHSTexUnknownPixFormat as e:
-                print(f"!! {e}")
-                continue
+            ghstexs = []
+            while not is_eof(file):
+                try:
+                    ghstexs.append(GHSTexImageSingle.from_ghstexfile(file))
+                except GHSTexUnknownPixFormat as e:
+                    print(f"!! {e}")
+                    continue
+                except GHSTexExtraDataException:
+                    pass
         outpath_base = os.path.splitext(path)[0]
-        for ghstex in ghstexmulti:
+        for ghstex in ghstexs:
             outpath = f"{outpath_base}_{ghstex.tex_offset:#05x}.png"
             with open(outpath, "wb") as outfile:
                 ghstex.write_to_png(outfile)
