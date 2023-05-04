@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 import struct
 import sys
 
@@ -105,8 +106,9 @@ def decompress(file) -> bytearray:
 
 def main(args=tuple(sys.argv[1:])):
     if not args:
-        print(f"{sys.argv[0]} [SLID file] [SLID file] ...")
+        print(f"{sys.argv[0]} [.sli file] [.sli file] ...")
     for filepath in args:
+        print(os.path.basename(filepath))
         with open(filepath, "rb") as file:
             decompressed_data = decompress(file)
         with open(f"{filepath}_dec", "wb") as file:
