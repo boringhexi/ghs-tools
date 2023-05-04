@@ -7,6 +7,7 @@ from mymodules.ghsteximage import (
     GHSTexImageSingle,
     GHSTexUnknownPixFormat,
     is_eof,
+    quickcheck_tex2_file,
     quickcheck_tex_file,
 )
 
@@ -18,14 +19,20 @@ def main(args=tuple(argv[1:])):
         with open(path, "rb") as file:
             print(os.path.basename(path))
             is_ghstex = quickcheck_tex_file(file)
+            read_tex = GHSTexImageSingle.from_ghstexfile
             if not is_ghstex:
-                print("!! Not a GHS texture file")
-                continue
+                file.seek(0)
+                is_ghstex2 = quickcheck_tex2_file(file)
+                if is_ghstex2:
+                    read_tex = GHSTexImageSingle.from_ghstex2file
+                else:
+                    print("!! Not a GHS texture file")
+                    continue
             file.seek(0)  # since read position is undefined after quickcheck_tex_file
             ghstexs = []
             while not is_eof(file):
                 try:
-                    ghstexs.append(GHSTexImageSingle.from_ghstexfile(file))
+                    ghstexs.append(read_tex(file))
                 except GHSTexUnknownPixFormat as e:
                     print(f"!! {e}")
                     continue

@@ -1,3 +1,11 @@
+"""Gregory Horror Show texture formats
+
+Encompasses two formats, which I will call GHSTexImage and GHSTexImage2. GHSTexImage2
+has some unknown extra data before and after the palette and pixels. The header gives
+no indication of whether a given texture file is a GHSTexImage or GHSTexImage2.
+
+Example of GHSTexImage2 can be found in FILE.STM at 28.stm/03.dat
+"""
 from io import SEEK_CUR
 from math import ceil
 from struct import unpack
@@ -124,6 +132,54 @@ class GHSTexImageSingle:
             alpha128=True,
         )
 
+    @classmethod
+    def from_ghstex2file(cls, file: BinaryIO) -> "GHSTexImageSingle":
+        pixfmt_raw = unpack("<I", file.read(4))[0]
+        pixfmt = _pixfmtval_pixfmt.get(pixfmt_raw)
+        if pixfmt is None:
+            raise GHSTexUnknownPixFormat(
+                f"Unknown pixel format value {pixfmt_raw:#010x}"
+            )
+
+        palette_size = unpack("<I", file.read(4))[0]
+        tex_index = unpack("<I", file.read(4))[0]
+        unk1, unk2 = unpack("<2H", file.read(4))
+
+        file.seek(128, SEEK_CUR)
+
+        if palette_size == 0:
+            palette = None
+        else:
+            palette_flat = unpack(f"<{palette_size}B", file.read(palette_size))
+            palette = list(chunks(palette_flat, 4))
+
+        file.seek(32, SEEK_CUR)
+
+        unk3, unk4 = unpack("<2H", file.read(4))
+        pixels_size = unpack("<I", file.read(4))[0]
+        tex_offset = unpack("<I", file.read(4))[0]
+        width, height = unpack("<2H", file.read(4))
+
+        file.seek(128, SEEK_CUR)
+
+        pixels_raw = unpack(f"<{pixels_size}B", file.read(pixels_size))
+        if pixfmt == "i4":
+            pixels = list(from_nibbles(pixels_raw))
+        else:  # elif pixfmt == "i8":
+            pixels = pixels_raw
+
+        file.seek(32, SEEK_CUR)
+
+        return cls(
+            width,
+            height,
+            pixels,
+            palette=palette,
+            pixfmt=pixfmt,
+            tex_offset=tex_offset,
+            alpha128=True,
+        )
+
     @property
     def size(self) -> tuple[int, int]:
         return self.width, self.height
@@ -174,7 +230,7 @@ class GHSTexImageSingle:
 
 
 def quickcheck_tex_file(file) -> bool:
-    """quickly check whether file is (very likely) a Gregory Horror Show texture
+    """quickly check whether file is (very likely) a GHSTexImage
 
     Works by checking if expected header/palette/pixel values match the file size
 
@@ -207,6 +263,36 @@ def quickcheck_tex_file(file) -> bool:
         if pixels_size == 0:
             return False
         if not read_and_check(file, 8 + pixels_size):
+            return False
+        # now at beginning of next texture or end of file
+        if is_eof(file):
+            return True
+
+
+def quickcheck_tex2_file(file) -> bool:
+    """quickly check whether file is (very likely) a GHSTexImage2
+
+    :param file: an open file with its current read position at 0
+    :return: True if we think file is a Gregory Horror Show texture, False otherwise.
+        After return, file's current read position is undefined
+    """
+    while True:
+        read_and_check(file, 4)
+        palette_size_b = file.read(4)
+        if len(palette_size_b) < 4:
+            return False
+        palette_size = unpack("<I", palette_size_b)[0]
+        if not read_and_check(file, 8 + 128 + palette_size + 32):
+            return False
+        if not read_and_check(file, 4):
+            return False
+        pixels_size_b = file.read(4)
+        if len(pixels_size_b) < 4:
+            return False
+        pixels_size = unpack("<I", pixels_size_b)[0]
+        if pixels_size == 0:
+            return False
+        if not read_and_check(file, 8 + 128 + pixels_size + 32):
             return False
         # now at beginning of next texture or end of file
         if is_eof(file):
