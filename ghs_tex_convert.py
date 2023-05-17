@@ -41,7 +41,10 @@ def main(args=tuple(argv[1:])):
         outpath_base = os.path.splitext(path)[0]
         digits = len(str(len(ghstexs)))
         for i, ghstex in enumerate(ghstexs):
-            outpath = f"{outpath_base}_{i:0{digits}}_{ghstex.tex_offset:#05x}.png"
+            if len(ghstexs) > 1:
+                outpath = f"{outpath_base}-{i:0{digits}}_{ghstex.tex_offset:#05x}.png"
+            else:
+                outpath = f"{outpath_base}_{ghstex.tex_offset:#05x}.png"
             with open(outpath, "wb") as outfile:
                 ghstex.write_to_png(outfile)
 
