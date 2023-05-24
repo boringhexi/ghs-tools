@@ -9,9 +9,11 @@ Example of GHSTexImage2 can be found in FILE.STM at 28.stm/03.dat
 from io import SEEK_CUR
 from math import ceil
 from struct import unpack
-from typing import Union, Optional, Sequence, BinaryIO
+from typing import BinaryIO, Optional, Sequence, Union
 
 from PIL import Image
+
+from mymodules.common import is_eof, keep_file_seek_position
 
 SeqIndexed = Sequence[int]
 SeqRGB = Sequence[tuple[int, int, int]]
@@ -34,15 +36,6 @@ class GHSTexUnknownPixFormat(ValueError):
 
 class GHSTexExtraDataException(Exception):
     pass
-
-
-def is_eof(file):
-    """return True if file is at exactly the end of its data"""
-    b = file.read(1)
-    was_already_eof = len(b) == 0
-    if not was_already_eof:
-        file.seek(-1, SEEK_CUR)
-    return was_already_eof
 
 
 def read_and_check(file, size):
@@ -229,6 +222,7 @@ class GHSTexImageSingle:
             return self.pixels
 
 
+@keep_file_seek_position
 def quickcheck_tex_file(file) -> bool:
     """quickly check whether file is (very likely) a GHSTexImage
 
@@ -236,18 +230,23 @@ def quickcheck_tex_file(file) -> bool:
 
     :param file: an open file with its current read position at 0
     :return: True if we think file is a Gregory Horror Show texture, False otherwise.
-        After return, file's current read position is undefined
+        After return, file's current read position is back to what it was originally
     """
+    texcount = 0
     while True:
         header1_b = file.read(4)
-        if len(header1_b) not in (b"\x08\0\0\0", b"\x09\0\0\0"):
+        if header1_b not in (b"\x08\0\0\0", b"\x09\0\0\0"):
             # Account for that one texture that ends in 4 extra 0xffffffff's
             if header1_b == b"\xff\xff\xff\xff":
                 read_and_check(file, 12)
-                if is_eof(file):
+                if is_eof(file) and texcount > 1:
                     return True
+                else:
+                    return False
+            else:
                 return False
 
+        texcount += 1
         palette_size_b = file.read(4)
         if len(palette_size_b) < 4:
             return False
@@ -269,15 +268,18 @@ def quickcheck_tex_file(file) -> bool:
             return True
 
 
+@keep_file_seek_position
 def quickcheck_tex2_file(file) -> bool:
     """quickly check whether file is (very likely) a GHSTexImage2
 
     :param file: an open file with its current read position at 0
     :return: True if we think file is a Gregory Horror Show texture, False otherwise.
-        After return, file's current read position is undefined
+        After return, file's current read position is back to what it was originally
     """
     while True:
-        read_and_check(file, 4)
+        header1_b = file.read(4)
+        if header1_b not in (b"\x08\0\0\0", b"\x09\0\0\0"):
+            return False
         palette_size_b = file.read(4)
         if len(palette_size_b) < 4:
             return False

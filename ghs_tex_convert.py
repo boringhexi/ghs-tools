@@ -21,14 +21,12 @@ def main(args=tuple(argv[1:])):
             is_ghstex = quickcheck_tex_file(file)
             read_tex = GHSTexImageSingle.from_ghstexfile
             if not is_ghstex:
-                file.seek(0)
                 is_ghstex2 = quickcheck_tex2_file(file)
                 if is_ghstex2:
                     read_tex = GHSTexImageSingle.from_ghstex2file
                 else:
                     print("!! Not a GHS texture file")
                     continue
-            file.seek(0)  # since read position is undefined after quickcheck_tex_file
             ghstexs = []
             while not is_eof(file):
                 try:

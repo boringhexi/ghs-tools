@@ -1,3 +1,4 @@
+"""Gregory Horror Show .MAP container format"""
 from io import SEEK_CUR
 from struct import unpack
 from typing import BinaryIO
