@@ -11,7 +11,7 @@ from typing import BinaryIO, Optional
 from ghs_sli_decompress import decompress
 from mymodules.common import is_eof
 from mymodules.ghsmap import GHSMap, GHSMapx, quickcheck_mapx_file
-from mymodules.ghsmeshposrot import quickcheck_mpr_file
+from mymodules.ghsmeshposrot import quickcheck_mpr_file, quickcheck_mpr_forcedfloat_file
 from mymodules.ghsstmcontainer import (
     GHSStmContainer,
     quickcheck_stm_file,
@@ -170,7 +170,9 @@ def process_stm(
             process_stm(
                 contentfile, outdir, i, verbose=verbose, vindentlvl=vindentlvl + 1
             )
-        elif quickcheck_mpr_file(contentfile):
+        elif quickcheck_mpr_file(contentfile) or quickcheck_mpr_forcedfloat_file(
+            contentfile
+        ):
             process_file_with_ext(
                 contentfile,
                 "mpr",
