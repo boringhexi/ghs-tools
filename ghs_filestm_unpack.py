@@ -10,7 +10,7 @@ from typing import BinaryIO, Optional
 
 from ghs_sli_decompress import decompress
 from mymodules.common import is_eof
-from mymodules.ghsmap import GHSMap
+from mymodules.ghsmap import GHSMap, GHSMapx, quickcheck_mapx_file
 from mymodules.ghsmeshposrot import quickcheck_mpr_file
 from mymodules.ghsstmcontainer import (
     GHSStmContainer,
@@ -20,7 +20,6 @@ from mymodules.ghsstmcontainer import (
 from mymodules.ghsteximage import (
     GHSTexExtraDataException,
     GHSTexImageSingle,
-    GHSTexUnknownPixFormat,
     quickcheck_tex2_file,
     quickcheck_tex_file,
 )
@@ -180,6 +179,10 @@ def process_stm(
                 verbose=verbose,
                 vindentlvl=vindentlvl + 1,
             )
+        elif quickcheck_mapx_file(contentfile, len(contentdata)):
+            process_mapx(
+                contentfile, outdir, i, verbose=verbose, vindentlvl=vindentlvl + 1
+            )
         else:
             process_dat_000_fff(
                 contentfile, outdir, i, verbose=verbose, vindentlvl=vindentlvl + 1
@@ -268,6 +271,38 @@ def process_map(
             process_file_with_ext(
                 contentfile,
                 "atr",
+                outdir,
+                i,
+                verbose=verbose,
+                vindentlvl=vindentlvl + 1,
+            )
+        else:
+            process_dat_000_fff(
+                contentfile, outdir, i, verbose=verbose, vindentlvl=vindentlvl + 1
+            )
+
+
+def process_mapx(
+    file: BinaryIO,
+    outdir: Path,
+    subdirname_idx: int,
+    verbose: bool = False,
+    vindentlvl: int = 0,
+):
+    outname = f"{subdirname_idx:03x}.mapx"
+    if verbose:
+        print(f"{vindent(vindentlvl)}{outname}")
+    outdir /= outname
+    os.makedirs(outdir, exist_ok=True)
+
+    mapcontainer = GHSMapx.from_mapxfile(file)
+    for i, content in enumerate(mapcontainer):
+        contentdata = content.data
+        contentfile = BytesIO(contentdata)
+        if contentdata.startswith(b"PM2"):
+            process_file_with_ext(
+                contentfile,
+                "pm2",
                 outdir,
                 i,
                 verbose=verbose,
