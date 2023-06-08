@@ -8,10 +8,10 @@ from pathlib import Path
 from sys import argv
 from typing import BinaryIO, Optional
 
-from ghs_sli_decompress import decompress
 from mymodules.common import is_eof
 from mymodules.ghsmap import GHSMap, GHSMapx, quickcheck_mapx_file
 from mymodules.ghsmeshposrot import quickcheck_mpr_file, quickcheck_mpr_forcedfloat_file
+from mymodules.ghssli import decompress
 from mymodules.ghsstmcontainer import (
     GHSStmContainer,
     quickcheck_stm_file,
