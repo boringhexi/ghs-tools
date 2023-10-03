@@ -29,6 +29,25 @@ _pixfmtval_pixfmt = {
     # ...: "rgba32",
 }
 
+palette_deswizzler = (
+    {8: 16, 9: 17, 10: 18, 11: 19, 12: 20, 13: 21, 14: 22, 15: 23}
+    | {16: 8, 17: 9, 18: 10, 19: 11, 20: 12, 21: 13, 22: 14, 23: 15}
+    | {40: 48, 41: 49, 42: 50, 43: 51, 44: 52, 45: 53, 46: 54, 47: 55}
+    | {48: 40, 49: 41, 50: 42, 51: 43, 52: 44, 53: 45, 54: 46, 55: 47}
+    | {72: 80, 73: 81, 74: 82, 75: 83, 76: 84, 77: 85, 78: 86, 79: 87}
+    | {80: 72, 81: 73, 82: 74, 83: 75, 84: 76, 85: 77, 86: 78, 87: 79}
+    | {104: 112, 105: 113, 106: 114, 107: 115, 108: 116, 109: 117, 110: 118, 111: 119}
+    | {112: 104, 113: 105, 114: 106, 115: 107, 116: 108, 117: 109, 118: 110, 119: 111}
+    | {136: 144, 137: 145, 138: 146, 139: 147, 140: 148, 141: 149, 142: 150, 143: 151}
+    | {144: 136, 145: 137, 146: 138, 147: 139, 148: 140, 149: 141, 150: 142, 151: 143}
+    | {168: 176, 169: 177, 170: 178, 171: 179, 172: 180, 173: 181, 174: 182, 175: 183}
+    | {176: 168, 177: 169, 178: 170, 179: 171, 180: 172, 181: 173, 182: 174, 183: 175}
+    | {200: 208, 201: 209, 202: 210, 203: 211, 204: 212, 205: 213, 206: 214, 207: 215}
+    | {208: 200, 209: 201, 210: 202, 211: 203, 212: 204, 213: 205, 214: 206, 215: 207}
+    | {232: 240, 233: 241, 234: 242, 235: 243, 236: 244, 237: 245, 238: 246, 239: 247}
+    | {240: 232, 241: 233, 242: 234, 243: 235, 244: 236, 245: 237, 246: 238, 247: 239}
+)
+
 
 class GHSTexUnknownPixFormat(ValueError):
     pass
@@ -113,6 +132,7 @@ class GHSTexImageSingle:
         if pixfmt == "i4":
             pixels = list(from_nibbles(pixels_raw))
         else:  # elif pixfmt == "i8":
+            palette = deswizzle_palette(palette)
             pixels = pixels_raw
 
         return cls(
@@ -358,7 +378,7 @@ def from_nibbles(bytes_, signed=False):
             yield (b >> 4) & 0b1111
 
 
-def deswizzle_pixels(pixels_swizzled):
+def deswizzle_pixels(pixels_swizzled: SeqIndexed) -> SeqIndexed:
     if len(pixels_swizzled) != 65536:
         raise ValueError("Can only deswizzle pixels of length 65536 (256x256)")
     pixels_deswizzled = [0] * 65536
@@ -420,3 +440,14 @@ def deswizzle_pixels(pixels_swizzled):
         pixels_deswizzled[newi] = pixel
 
     return pixels_deswizzled
+
+
+def deswizzle_palette(swizzled_palette: SeqRGBA) -> SeqRGBA:
+    if len(swizzled_palette) != 256:
+        raise ValueError("Can only deswizzle palette of length 256")
+    deswizzled_palette = list(swizzled_palette)  # shallow copy
+    for i, col in enumerate(swizzled_palette):
+        if i in palette_deswizzler:
+            newi = palette_deswizzler[i]
+            deswizzled_palette[newi] = col
+    return deswizzled_palette
