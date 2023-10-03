@@ -148,7 +148,7 @@ class GHSTexImageSingle:
 
         file.seek(32, SEEK_CUR)
 
-        unk3, unk4 = unpack("<2H", file.read(4))
+        last, swizzled, unk3 = unpack("<HBB", file.read(4))
         pixels_size = unpack("<I", file.read(4))[0]
         tex_offset = unpack("<I", file.read(4))[0]
         width, height = unpack("<2H", file.read(4))
@@ -158,6 +158,8 @@ class GHSTexImageSingle:
         pixels_raw = unpack(f"<{pixels_size}B", file.read(pixels_size))
         if pixfmt == "i4":
             pixels = list(from_nibbles(pixels_raw))
+            if swizzled:
+                pixels = deswizzle_pixels(pixels)
         else:  # elif pixfmt == "i8":
             pixels = pixels_raw
 
@@ -354,3 +356,67 @@ def from_nibbles(bytes_, signed=False):
         else:
             yield b & 0b1111
             yield (b >> 4) & 0b1111
+
+
+def deswizzle_pixels(pixels_swizzled):
+    if len(pixels_swizzled) != 65536:
+        raise ValueError("Can only deswizzle pixels of length 65536 (256x256)")
+    pixels_deswizzled = [0] * 65536
+
+    for i, pixel in enumerate(pixels_swizzled):
+        half128 = int(i >= 32768)
+        columnbase = (i // 8192) % 4
+        columnadd = (i // 512) % 2 * 4
+        column32 = columnbase + columnadd
+        row16 = (i // 64) % 8
+
+        linebasei = (i // 1024) % 8
+        linebase = [0, 1, 4, 5, 8, 9, 0xC, 0xD][linebasei]
+        lineadd = (i // 32) % 2 * 2
+
+        xbasei = i % 64
+        xbasechooser = (
+            [0x00, 0x04, 0x08, 0x0C, 0x10, 0x14, 0x18, 0x1C]
+            + [0x01, 0x05, 0x09, 0x0D, 0x11, 0x15, 0x19, 0x1D]
+            + [0x02, 0x06, 0x0A, 0x0E, 0x12, 0x16, 0x1A, 0x1E]
+            + [0x03, 0x07, 0x0B, 0x0F, 0x13, 0x17, 0x1B, 0x1F]
+            + [0x04, 0x00, 0x0C, 0x08, 0x14, 0x10, 0x1C, 0x18]
+            + [0x05, 0x01, 0x0D, 0x09, 0x15, 0x11, 0x1D, 0x19]
+            + [0x06, 0x02, 0x0E, 0x0A, 0x16, 0x12, 0x1E, 0x1A]
+            + [0x07, 0x03, 0x0F, 0x0B, 0x17, 0x13, 0x1F, 0x1B]
+        )
+        # kludge part 1...
+        # my initial assumptions about xbase were sometimes wrong, this kind of fixes it
+        if linebasei in (2, 3, 6, 7):
+            xbasechooser = (
+                [0x04, 0x00, 0x0C, 0x08, 0x14, 0x10, 0x1C, 0x18]
+                + [0x05, 0x01, 0x0D, 0x09, 0x15, 0x11, 0x1D, 0x19]
+                + [0x06, 0x02, 0x0E, 0x0A, 0x16, 0x12, 0x1E, 0x1A]
+                + [0x07, 0x03, 0x0F, 0x0B, 0x17, 0x13, 0x1F, 0x1B]
+                + [0x00, 0x04, 0x08, 0x0C, 0x10, 0x14, 0x18, 0x1C]
+                + [0x01, 0x05, 0x09, 0x0D, 0x11, 0x15, 0x19, 0x1D]
+                + [0x02, 0x06, 0x0A, 0x0E, 0x12, 0x16, 0x1A, 0x1E]
+                + [0x03, 0x07, 0x0B, 0x0F, 0x13, 0x17, 0x1B, 0x1F]
+            )
+        xbase = xbasechooser[xbasei]
+
+        # kludge part 2...
+        # pixels in certain parts of the output are wrongly arranged in a predictable
+        # way, so this manually fixes them
+        line = linebase + lineadd
+        kludgeline = (0, 1, 2, 3, 8, 9, 10, 11)
+        kludgexbase = [4, 5, 6, 7, 12, 13, 14, 15, 20, 21, 22, 23, 28, 29, 30, 31]
+        if (xbase in kludgexbase and line in kludgeline) or (
+            xbase not in kludgexbase and line not in kludgeline
+        ):
+            if lineadd == 2:
+                lineadd = 0
+            else:  # lineadd == 0
+                lineadd = 2
+
+        x = column32 * 32 + xbase
+        y = half128 * 128 + row16 * 16 + linebase + lineadd
+        newi = y * 256 + x
+        pixels_deswizzled[newi] = pixel
+
+    return pixels_deswizzled
