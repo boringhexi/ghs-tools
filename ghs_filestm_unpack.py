@@ -9,7 +9,7 @@ from sys import argv
 from typing import BinaryIO, Optional
 
 from mymodules.common import is_eof
-from mymodules.ghsmap import GHSMap, GHSMapx, quickcheck_mapx_file
+from mymodules.ghsmap import GHSMap, quickcheck_mapx_file
 from mymodules.ghsmeshposrot import quickcheck_mpr_file, quickcheck_mpr_forcedfloat_file
 from mymodules.ghssli import decompress
 from mymodules.ghsstmcontainer import (
@@ -244,76 +244,43 @@ def process_sli(
 
 
 def process_map(
-    file: BinaryIO,
+    mapfile: BinaryIO,
     outdir: Path,
-    subdirname_idx: int,
+    filename_idx: int,
     verbose: bool = False,
     vindentlvl: int = 0,
 ):
-    outname = f"{subdirname_idx:03x}.map"
+    mapcontainer = GHSMap.from_mapfile(mapfile)
+    mapext = "map-atr"
+    # every mapfile contains either all .atr files or all .pm2 files
+    for content in mapcontainer:
+        contentdata = content.data
+        if contentdata.startswith(b"PM2"):
+            mapext = "map-pm2"
+        break
+
+    outname = f"{filename_idx:03x}.{mapext}"
     if verbose:
         print(f"{vindent(vindentlvl)}{outname}")
-    outdir /= outname
-    os.makedirs(outdir, exist_ok=True)
-
-    mapcontainer = GHSMap.from_mapfile(file)
-    for i, content in enumerate(mapcontainer):
-        contentdata = content.data
-        contentfile = BytesIO(contentdata)
-        if contentdata.startswith(b"PM2"):
-            process_file_with_ext(
-                contentfile,
-                "pm2",
-                outdir,
-                i,
-                verbose=verbose,
-                vindentlvl=vindentlvl + 1,
-            )
-        elif contentdata.startswith(b"ATR"):
-            process_file_with_ext(
-                contentfile,
-                "atr",
-                outdir,
-                i,
-                verbose=verbose,
-                vindentlvl=vindentlvl + 1,
-            )
-        else:
-            process_dat_000_fff(
-                contentfile, outdir, i, verbose=verbose, vindentlvl=vindentlvl + 1
-            )
+    outpath = outdir / outname
+    with open(outpath, "wb") as outfile:
+        mapfile.seek(0)
+        outfile.write(mapfile.read())
 
 
 def process_mapx(
-    file: BinaryIO,
+    mapxfile: BinaryIO,
     outdir: Path,
-    subdirname_idx: int,
+    filename_idx: int,
     verbose: bool = False,
     vindentlvl: int = 0,
 ):
-    outname = f"{subdirname_idx:03x}.mapx"
+    outname = f"{filename_idx:03x}.map-pm2"
     if verbose:
         print(f"{vindent(vindentlvl)}{outname}")
-    outdir /= outname
-    os.makedirs(outdir, exist_ok=True)
-
-    mapcontainer = GHSMapx.from_mapxfile(file)
-    for i, content in enumerate(mapcontainer):
-        contentdata = content.data
-        contentfile = BytesIO(contentdata)
-        if contentdata.startswith(b"PM2"):
-            process_file_with_ext(
-                contentfile,
-                "pm2",
-                outdir,
-                i,
-                verbose=verbose,
-                vindentlvl=vindentlvl + 1,
-            )
-        else:
-            process_dat_000_fff(
-                contentfile, outdir, i, verbose=verbose, vindentlvl=vindentlvl + 1
-            )
+    outpath = outdir / outname
+    with open(outpath, "wb") as outfile:
+        outfile.write(mapxfile.read())
 
 
 def process_dat_000_fff(
