@@ -100,8 +100,8 @@ def get_anims(modelmeta_index: int, numbones: int, execfile: BinaryIO):
                             bpkf_unk,
                             interp_start,
                             interp_delta,
-                        ) = unpack("<BBbBff", execfile.read(12))
-                        if pm2 == 255:
+                        ) = unpack("<BbbBff", execfile.read(12))
+                        if pm2 == -1:
                             pm2 = None
                         this_keyframe = {
                             "keyframe_start": keyframestart,
