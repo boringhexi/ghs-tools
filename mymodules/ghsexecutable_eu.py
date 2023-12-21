@@ -35,11 +35,11 @@ def get_boneparentinfo_and_numbones(
     numbones = 0
     while sentinel != -1:
         numbones += 1
-        parent, unk1, unk2, unk3, unk4 = unpack("<hhfff", execfile.read(16))
+        parent, unk1, posx, posy, posz = unpack("<hhfff", execfile.read(16))
         if parent == -1:
             parent = None
         boneparentinfo.append(
-            {"parent": parent, "unk1": unk1, "unk2": unk2, "unk3": unk3, "unk4": unk4}
+            {"parent": parent, "unk1": unk1, "posx": posx, "posy": posy, "posz": posz}
         )
         (sentinel,) = unpack("<i", execfile.read(4))
     return boneparentinfo, numbones
