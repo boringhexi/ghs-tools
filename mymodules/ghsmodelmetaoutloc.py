@@ -102,7 +102,11 @@ held_objects = {
     0x64: ("029.stm/017.sli.stm", "soulcollection"),
 }
 
-effects = {0x66: ("027.sli.stm/002.stm", "soulbottle")}
+effects = {
+    0x66: ("027.sli.stm/002.stm", "soulbottle"),
+    0x67: ("027.sli.stm/003.stm", "knockeffect"),
+    0x68: ("027.sli.stm/004.stm", "remotecontrol_beam"),
+}
 
 rouletteboy_horrorshow = (0xA0, 0xA1, 0xA2, 0xA3, 0xA4)
 rouletteboy_horrorshow = {
