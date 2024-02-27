@@ -102,6 +102,25 @@ held_objects = {
     0x64: ("029.stm/017.sli.stm", "soulcollection"),
 }
 
+figurines = {
+    0x418: ("03c.sli.stm/001.tex2", "gregory_figurine"),
+    0x419: ("03c.sli.stm/003.tex2", "james_figurine"),
+    0x41A: ("03c.sli.stm/005.tex2", "nekozombie_figurine"),
+    0x41B: ("03c.sli.stm/007.tex2", "catherine_figurine"),
+    0x41C: ("03c.sli.stm/009.tex2", "judgmentboy_figurine"),
+    0x41D: ("03c.sli.stm/00b.tex2", "lostdoll_figurine"),
+    0x41E: ("03c.sli.stm/00d.tex2", "mummydog_figurine"),
+    0x41F: ("03c.sli.stm/00f.tex2", "mummypapa_figurine"),
+    0x420: ("03c.sli.stm/011.tex2", "cactusgunman_cactusgirl_figurine"),
+    0x421: ("03c.sli.stm/013.tex2", "hellschef_figurine"),
+    0x422: ("03c.sli.stm/015.tex2", "tvfish_figurine"),
+    0x423: ("03c.sli.stm/017.tex2", "rouletteboy_figurine"),
+    0x424: ("03c.sli.stm/019.tex2", "clockmaster_figurine"),
+    0x425: ("03c.sli.stm/01b.tex2", "myson_figurine"),
+    0x426: ("03c.sli.stm/01d.tex2", "angeldog_devildog_figurine"),
+    0x427: ("03c.sli.stm/01f.tex2", "judgmentboygold_figurine"),
+}
+
 effects = {
     0x66: ("027.sli.stm/002.stm", "soulbottle"),
     0x67: ("027.sli.stm/003.stm", "knockeffect"),
@@ -128,7 +147,9 @@ def get_modelmeta_outloc(
     outsubdir = None
     outfilename = f"{modelmeta_i:03x}.ghs"
 
-    ghs_stuff = characters | held_objects | effects | rouletteboy_horrorshow | doors
+    ghs_stuff = (
+        characters | held_objects | figurines | effects | rouletteboy_horrorshow | doors
+    )
     if modelmeta_i in ghs_stuff:
         outsubdir, namepart = ghs_stuff[modelmeta_i]
         if namepart:
