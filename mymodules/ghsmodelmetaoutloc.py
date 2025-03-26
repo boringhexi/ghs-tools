@@ -124,12 +124,12 @@ figurines = {
 gregoryshop_items = {
     0x428: ("05d.sli.stm/001.tex2", "100juice"),
     0x429: ("05d.sli.stm/003.tex2", "applejuice"),
-    0x42a: ("05d.sli.stm/005.tex2", "orangejuice"),
-    0x42b: ("05d.sli.stm/007.tex2", "energydrink"),
-    0x42c: ("05d.sli.stm/009.tex2", "herbtea"),
-    0x42d: ("05d.sli.stm/00b.tex2", "springwater"),
-    0x42e: ("05d.sli.stm/00d.tex2", "chocolate"),
-    0x42f: ("05d.sli.stm/00f.tex2", "marshmallow"),
+    0x42A: ("05d.sli.stm/005.tex2", "orangejuice"),
+    0x42B: ("05d.sli.stm/007.tex2", "energydrink"),
+    0x42C: ("05d.sli.stm/009.tex2", "herbtea"),
+    0x42D: ("05d.sli.stm/00b.tex2", "springwater"),
+    0x42E: ("05d.sli.stm/00d.tex2", "chocolate"),
+    0x42F: ("05d.sli.stm/00f.tex2", "marshmallow"),
     0x430: ("05d.sli.stm/011.tex2", "pudding"),
     0x431: ("05d.sli.stm/013.tex2", "nougat"),
     0x432: ("05d.sli.stm/015.tex2", "candy"),
@@ -140,12 +140,12 @@ gregoryshop_items = {
     0x437: ("05d.sli.stm/01f.tex2", "antiacid"),
     0x438: ("05d.sli.stm/021.tex2", "sedative"),
     0x439: ("05d.sli.stm/023.tex2", "poultice"),
-    0x43a: ("05d.sli.stm/025.tex2", "eyedrops"),
-    0x43b: ("05d.sli.stm/027.tex2", "chineseremedy"),
-    0x43c: ("05d.sli.stm/029.tex2", "bandage"),
-    0x43d: ("05d.sli.stm/02b.tex2", "mindup"),
-    0x43e: ("05d.sli.stm/02d.tex2", "speedup"),
-    0x43f: ("05d.sli.stm/02f.tex2", "emptycan"),
+    0x43A: ("05d.sli.stm/025.tex2", "eyedrops"),
+    0x43B: ("05d.sli.stm/027.tex2", "chineseremedy"),
+    0x43C: ("05d.sli.stm/029.tex2", "bandage"),
+    0x43D: ("05d.sli.stm/02b.tex2", "mindup"),
+    0x43E: ("05d.sli.stm/02d.tex2", "speedup"),
+    0x43F: ("05d.sli.stm/02f.tex2", "emptycan"),
     0x440: ("05d.sli.stm/031.tex2", "kettle"),
     0x441: ("05d.sli.stm/033.tex2", "hanger"),
     0x442: ("05d.sli.stm/035.tex2", "tradingcard"),
@@ -156,12 +156,12 @@ gregoryshop_items = {
     0x447: ("05d.sli.stm/03f.tex2", "spinthewheel"),
     0x448: ("05d.sli.stm/041.tex2", "meandmydolly"),
     0x449: ("05d.sli.stm/043.tex2", "warpedtime"),
-    0x44a: ("05d.sli.stm/045.tex2", "brotherslasso"),
-    0x44b: ("05d.sli.stm/047.tex2", "ihatesmoke"),
-    0x44c: ("05d.sli.stm/049.tex2", "sickbuthappy"),
-    0x44d: ("05d.sli.stm/04b.tex2", "syringemonthly"),
-    0x44e: ("05d.sli.stm/04d.tex2", "fishlife"),
-    0x44f: ("05d.sli.stm/04f.tex2", "toughchoice"),
+    0x44A: ("05d.sli.stm/045.tex2", "brotherslasso"),
+    0x44B: ("05d.sli.stm/047.tex2", "ihatesmoke"),
+    0x44C: ("05d.sli.stm/049.tex2", "sickbuthappy"),
+    0x44D: ("05d.sli.stm/04b.tex2", "syringemonthly"),
+    0x44E: ("05d.sli.stm/04d.tex2", "fishlife"),
+    0x44F: ("05d.sli.stm/04f.tex2", "toughchoice"),
     0x450: ("05d.sli.stm/051.tex2", "bloodhoroscope"),
     0x451: ("05d.sli.stm/053.tex2", "prisonofhope"),
     0x452: ("05d.sli.stm/055.tex2", "gregoryexposed"),
@@ -170,7 +170,6 @@ gregoryshop_items = {
     0x455: ("05d.sli.stm/05b.tex2", "guidetopoison"),
     0x456: ("05d.sli.stm/05d.tex2", "bananapeel"),
     0x457: ("05d.sli.stm/05f.tex2", "doll"),
-
 }
 
 effects = {
@@ -200,18 +199,24 @@ def get_modelmeta_outloc(
     outfilename = f"{modelmeta_i:03x}.ghs"
 
     ghs_stuff = (
-        characters | held_objects | figurines | effects | rouletteboy_horrorshow | doors
+        characters
+        | held_objects
+        | figurines
+        | gregoryshop_items
+        | effects
+        | rouletteboy_horrorshow
+        | doors
     )
     if modelmeta_i in ghs_stuff:
         outsubdir, namepart = ghs_stuff[modelmeta_i]
         if namepart:
             outfilename = f"{modelmeta_i:03x}_{namepart}.ghs"
-            
+
     elif modelmeta_i in character_shadows:
         outsubdir, namepart = character_shadows[modelmeta_i]
         if namepart:
             outfilename = f"{modelmeta_i:03x}_{namepart}.ghs-shadow"
-            
+
     elif stm_index != -1:  # room props that provide a .stm index
         outsubdir = f"{stm_index:03x}.sli.stm"
 
