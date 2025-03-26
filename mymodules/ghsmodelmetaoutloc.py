@@ -3,8 +3,8 @@
 from typing import Optional
 
 characters = {
-    0x00: ("02c.sli.tex", "boy"),
-    0x02: ("02e.sli.tex", "girl"),
+    0x00: ("02c.sli.tex", "guestboy"),
+    0x02: ("02e.sli.tex", "guestgirl"),
     0x04: ("0aa.stm/000.sli.tex", "gregory"),
     0x06: ("0aa.stm/002.sli.tex", "judgmentboy"),
     0x08: ("0aa.stm/004.sli.tex", "nekozombie"),
