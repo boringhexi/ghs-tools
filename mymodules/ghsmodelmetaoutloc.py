@@ -183,6 +183,11 @@ rouletteboy_horrorshow = {
     i: ("0c0.sli.stm", "rouletteboy_horrorshow") for i in rouletteboy_horrorshow
 }
 
+angeldog_horrorshow = (0x93, 0x94, 0x95)  # and maybe 0x92, but not sure
+angeldog_horrorshow = {
+    i: ("0bd.sli.stm", "angeldog_horrorshow") for i in angeldog_horrorshow
+}
+
 doors = range(0xA7, 0xEE + 1)
 doors = {i: ("028.stm", "door") for i in doors}
 
@@ -205,6 +210,7 @@ def get_modelmeta_outloc(
         | gregoryshop_items
         | effects
         | rouletteboy_horrorshow
+        | angeldog_horrorshow
         | doors
     )
     if modelmeta_i in ghs_stuff:
