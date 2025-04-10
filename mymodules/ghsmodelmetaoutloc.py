@@ -32,8 +32,8 @@ characters = {
 }
 
 character_shadows = {
-    0x01: ("02c.sli.tex", "boy"),
-    0x03: ("02e.sli.tex", "girl"),
+    0x01: ("02c.sli.tex", "guestboy"),
+    0x03: ("02e.sli.tex", "guestgirl"),
     0x05: ("0aa.stm/000.sli.tex", "gregory"),
     0x07: ("0aa.stm/002.sli.tex", "judgmentboy"),
     0x09: ("0aa.stm/004.sli.tex", "nekozombie"),
