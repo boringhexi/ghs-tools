@@ -188,7 +188,7 @@ angeldog_horrorshow = {
     i: ("0bd.sli.stm", "angeldog_horrorshow") for i in angeldog_horrorshow
 }
 
-doors = range(0xA7, 0xEE + 1)
+doors = range(0xA7, 0xF3 + 1)
 doors = {i: ("028.stm", "door") for i in doors}
 
 
