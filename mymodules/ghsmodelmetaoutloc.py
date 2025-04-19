@@ -149,7 +149,7 @@ gregoryshop_items = {
     0x440: ("05d.sli.stm/031.tex2", "kettle"),
     0x441: ("05d.sli.stm/033.tex2", "hanger"),
     0x442: ("05d.sli.stm/035.tex2", "tradingcard"),
-    0x443: ("05d.sli.stm/037.tex2", "gregoryenergy"),
+    0x443: ("05d.sli.stm/037.tex2", "battery"),
     0x444: ("05d.sli.stm/039.tex2", "fruitoftime"),
     0x445: ("05d.sli.stm/03b.tex2", "thegunman"),
     0x446: ("05d.sli.stm/03d.tex2", "judgementday"),
