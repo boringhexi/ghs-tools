@@ -168,7 +168,7 @@ class GHSTexImageSingle:
 
         file.seek(32, SEEK_CUR)
 
-        last, swizzled, unk3 = unpack("<HBB", file.read(4))
+        last, pixels_are_swizzled, unk3 = unpack("<HBB", file.read(4))
         pixels_size = unpack("<I", file.read(4))[0]
         tex_offset = unpack("<I", file.read(4))[0]
         width, height = unpack("<2H", file.read(4))
@@ -178,9 +178,10 @@ class GHSTexImageSingle:
         pixels_raw = unpack(f"<{pixels_size}B", file.read(pixels_size))
         if pixfmt == "i4":
             pixels = list(from_nibbles(pixels_raw))
-            if swizzled:
+            if pixels_are_swizzled:
                 pixels = deswizzle_pixels(pixels)
         else:  # elif pixfmt == "i8":
+            palette = deswizzle_palette(palette)
             pixels = pixels_raw
 
         file.seek(32, SEEK_CUR)
